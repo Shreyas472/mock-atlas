@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html data-theme="dark"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas Dashboard - SRA VJTI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg-primary: #faf8f5; --bg-secondary: #fff; --text-primary: #2c2c2c;
+      --text-secondary: #4a4a4a; --text-muted: #666; --border-color: #e0e0e0;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05); --code-bg: #f5f5f5; --code-border: #e8e8e8; --accent: #0066cc;
+    }
+    [data-theme="dark"] {
+      --bg-primary: #0a0a0a; --bg-secondary: #1a1a1a; --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0; --text-muted: #999; --border-color: #333;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3); --code-bg: #252525; --code-border: #333; --accent: #66b3ff;
+    }
+    body { font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+
+    header { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+    .logo-emoji { font-size: 1.8rem; }
+    h1 { font-size: 1.1rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sign-out { color: var(--text-primary); text-decoration: none; padding: 0.5rem 1.2rem; background: var(--code-bg); font-size: 0.85rem; border: 1px solid var(--border-color); }
+
+    .container { flex: 1; max-width: 1100px; width: 100%; margin: 0 auto; padding: 3rem 2rem; }
+
+    .step-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.6rem; }
+    .step-label .n { width: 20px; height: 20px; border: 1px solid var(--text-muted); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem; color: var(--text-muted); }
+
+    .intro h2 { font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .intro p { color: var(--text-secondary); line-height: 1.7; max-width: 560px; margin-bottom: 2.5rem; }
+
+    /* Step 1: track picker — big flat tiles */
+    .track-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 3rem; }
+    @media (max-width: 900px) { .track-row { grid-template-columns: repeat(2, 1fr); } }
+    .track-tile {
+      position: relative; border: 1px solid var(--border-color); background: var(--bg-secondary);
+      padding: 1.5rem 1rem; text-align: center; cursor: pointer; font-family: inherit;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+    .track-tile:hover { transform: translateY(-3px); }
+    .track-tile.selected { border: 1px solid var(--text-primary); background: var(--code-bg); }
+    .track-tile.selected::after { content: "✓"; position: absolute; top: 0.5rem; right: 0.6rem; font-size: 0.75rem; color: var(--text-primary); }
+    .track-tile .icon-badge { width: 46px; height: 46px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.6rem; }
+    .track-tile .icon-badge img { width: 28px; height: 28px; object-fit: contain; }
+    .track-tile .name { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); }
+
+    /* Step 2: level picker — appears once a track is chosen */
+    .level-section { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.3s ease, opacity 0.3s ease; margin-bottom: 0; }
+    .level-section.open { max-height: 600px; opacity: 1; margin-bottom: 3rem; }
+
+    .level-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 700px) { .level-row { grid-template-columns: 1fr; } }
+    .level-card {
+      border: 1px solid var(--border-color); background: var(--bg-secondary); padding: 1.4rem 1.2rem;
+      text-align: left; cursor: pointer; font-family: inherit; color: var(--text-primary);
+      border-top: 3px solid var(--border-color);
+    }
+    .level-card:hover { border-top-color: var(--text-muted); }
+    .level-card.selected { border-top-color: var(--text-primary); background: var(--code-bg); }
+    .level-card .tier { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .level-card .name { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .level-card .desc { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+
+    /* Step 3: CTA */
+    .cta-row { display: flex; align-items: center; gap: 1rem; }
+    .start-btn {
+      font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.8rem;
+      background: var(--text-primary); color: var(--bg-primary); border: none; cursor: pointer;
+      opacity: 0.35; pointer-events: none; transition: opacity 0.15s ease;
+    }
+    .start-btn.ready { opacity: 1; pointer-events: auto; }
+    .cta-hint { font-size: 0.8rem; color: var(--text-muted); }
+
+    .landing-panel { margin-top: 2rem; padding: 1.25rem 1.5rem; border: 1px dashed var(--border-color); color: var(--text-muted); font-size: 0.9rem; display: none; }
+    .landing-panel.show { display: block; }
+    .landing-panel strong { color: var(--text-primary); }
+
+    footer { background: var(--bg-secondary); border-top: 1px solid var(--border-color); padding: 2rem; text-align: center; margin-top: auto; }
+    .footer-text { color: var(--text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="khopdi-baba.svg" alt="SRA VJTI" class="logo-mark">
+    <a href="#" class="sign-out">Sign out</a>
+  </header>
+
+  <div class="container">
+    <div class="intro">
+      <h2>Where do you want to start?</h2>
+      <p>Pick a track, then a level</p>
+    </div>
+
+    <div class="step-label"><span class="n">1</span>Choose a track</div>
+    <div class="track-row" id="track-row"></div>
+
+    <div class="level-section" id="level-section">
+      <div class="step-label"><span class="n">2</span>Choose a level</div>
+      <div class="level-row" id="level-row"></div>
+    </div>
+
+    <div class="cta-row">
+      <button class="start-btn" id="start-btn">Start learning →</button>
+      <span class="cta-hint" id="cta-hint">Pick a track and a level first</span>
+    </div>
+
+    <div class="landing-panel" id="landing-panel"></div>
+  </div>
+
+  <footer><div class="footer-text">© 2026 Society of Robotics and Automation, VJTI | sravjti.in</div></footer>
+
+  <script>
+    const tracks = [
+      { icon: 'icon-robotics.png', label: 'Robotics', slug: 'robotics' },
+      { icon: 'icon-controls.png', label: 'Controls', slug: 'controls' },
+      { icon: 'icon-embedded.png', label: 'Embedded', slug: 'embedded' },
+      { icon: 'icon-cad.png', label: 'CAD', slug: 'cad' },
+      { icon: 'icon-rl.png', label: 'RL', slug: 'rl' },
+      { icon: 'icon-ml.png', label: 'ML', slug: 'ml' },
+      { icon: 'icon-pcb.png', label: 'PCB Designing', slug: 'pcb_designing' },
+      { icon: 'icon-comparch.png', label: 'Computer Architecture', slug: 'comparch' }
+    ];
+
+    const levels = [
+      { name: 'Beginner', desc: 'Core concepts, first tutorials, no assumed background.' },
+      { name: 'Intermediate', desc: 'Applied build-alongs you\u2019ve done the basics already.' },
+      { name: 'Advanced', desc: 'Deeper theory, optimization, and open-ended projects.' }
+    ];
+
+    let selectedTrack = null;
+    let selectedLevel = null;
+
+    const trackRow = document.getElementById('track-row');
+    const levelSection = document.getElementById('level-section');
+    const levelRow = document.getElementById('level-row');
+    const startBtn = document.getElementById('start-btn');
+    const ctaHint = document.getElementById('cta-hint');
+    const panel = document.getElementById('landing-panel');
+
+    tracks.forEach(track => {
+      const tile = document.createElement('button');
+      tile.className = 'track-tile';
+      tile.innerHTML = `<span class="icon-badge"><img src="${track.icon}" alt=""></span><span class="name">${track.label}</span>`;
+      tile.addEventListener('click', () => {
+        selectedTrack = track;
+        document.querySelectorAll('.track-tile').forEach(t => t.classList.remove('selected'));
+        tile.classList.add('selected');
+        levelSection.classList.add('open');
+        panel.classList.remove('show');
+        updateCta();
+      });
+      trackRow.appendChild(tile);
+    });
+
+    levels.forEach(level => {
+      const card = document.createElement('button');
+      card.className = 'level-card';
+      card.innerHTML = `<div class="tier">Tier</div><div class="name">${level.name}</div><div class="desc">${level.desc}</div>`;
+      card.addEventListener('click', () => {
+        selectedLevel = level.name;
+        document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        updateCta();
+      });
+      levelRow.appendChild(card);
+    });
+
+    function updateCta() {
+      if (selectedTrack && selectedLevel) {
+        startBtn.classList.add('ready');
+        ctaHint.textContent = `${selectedTrack.label} · ${selectedLevel}`;
+      } else {
+        startBtn.classList.remove('ready');
+        ctaHint.textContent = 'Pick a track and a level first';
+      }
+    }
+  </script>
+</body></html>
