@@ -3,7 +3,7 @@
 
   var DOMAINS = [
     { id:'intelligent-systems',   name:'Intelligent Systems',   tag:'Machine Learning & RL' },
-    { id:'computer-architecture', name:'Computer Architecture', tag:'VLSI · CPU · GPU' },
+    { id:'computer-architecture', name:'Computer Architecture', tag:'VLSI · CHIP Design' },
     { id:'robotics',              name:'Robotics',              tag:'ROS2 & Automation' },
     { id:'embedded-systems',      name:'Embedded Systems',      tag:'Firmware & IoT' },
     { id:'cad-cam',               name:'CAD / CAM',             tag:'Design & Manufacturing' },
